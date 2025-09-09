@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup & Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    form { margin-bottom: 20px; }
+    input { display: block; margin: 10px 0; padding: 8px; width: 250px; }
+    button { padding: 8px 12px; margin-top: 10px; cursor: pointer; }
+    table { border-collapse: collapse; margin-top: 20px; width: 80%; }
+    th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    .error { color: red; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h2>Signup Form</h2>
+  <form id="signupForm">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password (min 6 chars)" required>
+    <button type="submit">Signup</button>
+    <p class="error" id="errorMsg"></p>
+  </form>
+
+  <h2>Dashboard</h2>
+  <table id="userTable">
+    <thead>
+      <tr><th>Username</th><th>Email</th><th>Action</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById("signupForm");
+    const errorMsg = document.getElementById("errorMsg");
+    const tableBody = document.querySelector("#userTable tbody");
+
+    function getUsers() {
+      return JSON.parse(localStorage.getItem("users")) || [];
+    }
+    function saveUsers(users) {
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+    function renderUsers() {
+      tableBody.innerHTML = "";
+      getUsers().forEach((user, index) => {
+        let row = `<tr>
+          <td>${user.username}</td>
+          <td>${user.email}</td>
+          <td><button onclick="deleteUser(${index})">Delete</button></td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      });
+    }
+    function hashPassword(pass) {
+      return btoa(pass); // simple encoding (not secure, just demo)
+    }
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      let username = document.getElementById("username").value.trim();
+      let email = document.getElementById("email").value.trim();
+      let password = document.getElementById("password").value;
+
+      if (username.length < 3) {
+        errorMsg.textContent = "Username must be at least 3 characters.";
+        return;
+      }
+      if (password.length < 6) {
+        errorMsg.textContent = "Password must be at least 6 characters.";
+        return;
+      }
+
+      errorMsg.textContent = "";
+      let users = getUsers();
+      users.push({ username, email, password: hashPassword(password) });
+      saveUsers(users);
+      renderUsers();
+      form.reset();
+    });
+
+    function deleteUser(index) {
+      let users = getUsers();
+      users.splice(index, 1);
+      saveUsers(users);
+      renderUsers();
+    }
+
+    renderUsers(); // initial load
+  </script>
+</body>
+</html>
